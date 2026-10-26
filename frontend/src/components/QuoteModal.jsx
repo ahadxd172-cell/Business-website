@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, CheckCircle2, ArrowRight, Sun, ShieldCheck, Sparkles, Phone, Mail, MapPin } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { API_BASE } from '../config/api';
 
 export default function QuoteModal({ isOpen, onClose, initialData = {} }) {
   const [formData, setFormData] = useState({
@@ -24,7 +25,7 @@ export default function QuoteModal({ isOpen, onClose, initialData = {} }) {
 
     try {
       // Send quote to backend API
-      await fetch('http://localhost:5000/api/quotes', {
+      await fetch(`${API_BASE}/quotes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

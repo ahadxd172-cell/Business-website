@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 import { connectDB } from './config/db.js';
 import quotesRouter from './routes/quotes.js';
 import configRouter from './routes/config.js';
@@ -15,9 +16,19 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Ensure uploads directory exists on server launch
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 const app = express();
 const PORT = process.env.PORT || 5000;
-const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
+const rawClientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+const normalizedClientUrl = rawClientUrl.replace(/\/+$/, '');
+
+// Enable trust proxy for Render / Cloudflare / Vercel
+app.set('trust proxy', 1);
 
 // Connect Database (MongoDB Atlas) and seed default admin
 (async () => {
@@ -25,9 +36,31 @@ const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
   await seedAdmin();
 })();
 
-// Middleware
+// Permissive CORS for Vercel and local development
+const allowedOrigins = [
+  normalizedClientUrl,
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173'
+];
+
 app.use(cors({
-  origin: [CLIENT_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+  origin: (origin, callback) => {
+    // Allow non-browser requests (e.g. Postman, curl, health monitors)
+    if (!origin) return callback(null, true);
+
+    // Allow configured origin, local development, or any Vercel deployment
+    if (
+      allowedOrigins.includes(origin) ||
+      origin.endsWith('.vercel.app') ||
+      process.env.NODE_ENV !== 'production'
+    ) {
+      return callback(null, true);
+    }
+
+    // Default allow to prevent blocked legitimate frontend requests
+    return callback(null, true);
+  },
   credentials: true
 }));
 app.use(express.json());

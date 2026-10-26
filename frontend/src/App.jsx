@@ -13,6 +13,7 @@ import CtaBanner from './components/CtaBanner';
 import Footer from './components/Footer';
 import QuoteModal from './components/QuoteModal';
 import AdminPortal from './admin/AdminPortal';
+import { API_BASE } from './config/api';
 
 export default function App() {
   const [isQuoteOpen, setIsQuoteOpen] = useState(false);
@@ -45,7 +46,7 @@ export default function App() {
   // Fetch site configuration from MongoDB
   const fetchLiveConfig = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/config');
+      const res = await fetch(`${API_BASE}/config`);
       const data = await res.json();
       if (data.success && data.data) {
         setConfig(prev => ({ ...prev, ...data.data }));
