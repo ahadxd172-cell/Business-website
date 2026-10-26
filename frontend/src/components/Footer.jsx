@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowRight, Mail, Phone, MapPin, Shield, CheckCircle, Sun } from 'lucide-react';
 
-export default function Footer({ onOpenQuote }) {
+export default function Footer({ onOpenQuote, onOpenAdmin }) {
   const [subscribed, setSubscribed] = useState(false);
   const [email, setEmail] = useState('');
 
@@ -130,8 +130,14 @@ export default function Footer({ onOpenQuote }) {
           <div className="flex items-center gap-6">
             <a href="#" className="hover:text-slate-300 transition">Privacy Policy</a>
             <a href="#" className="hover:text-slate-300 transition">Terms of Service</a>
-            <a href="#" className="hover:text-slate-300 transition">Licensing & Safety</a>
-            <a href="#" className="hover:text-slate-300 transition">Cookie Preferences</a>
+            {onOpenAdmin && (
+              <button
+                onClick={onOpenAdmin}
+                className="text-slate-500 hover:text-[#bbf451] flex items-center gap-1 transition cursor-pointer"
+              >
+                🔐 Admin Portal
+              </button>
+            )}
           </div>
         </div>
 

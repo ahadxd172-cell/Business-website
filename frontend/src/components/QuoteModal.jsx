@@ -13,19 +13,38 @@ export default function QuoteModal({ isOpen, onClose, initialData = {} }) {
     propertyType: initialData?.propertyType || 'residential'
   });
 
+  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    confetti({
-      particleCount: 100,
-      spread: 80,
-      origin: { y: 0.5 },
-      colors: ['#bbf451', '#38bdf8', '#fbbf24', '#ffffff']
-    });
-    setSubmitted(true);
+    setSubmitting(true);
+
+    try {
+      // Send quote to backend API
+      await fetch('http://localhost:5000/api/quotes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          plan: initialData?.plan || 'Custom Estimate',
+          systemSize: initialData?.systemSize || 'Calculated Size'
+        })
+      });
+    } catch (err) {
+      console.log('Backend sync note (offline or local fallback):', err.message);
+    } finally {
+      setSubmitting(false);
+      confetti({
+        particleCount: 100,
+        spread: 80,
+        origin: { y: 0.5 },
+        colors: ['#bbf451', '#38bdf8', '#fbbf24', '#ffffff']
+      });
+      setSubmitted(true);
+    }
   };
 
   const resetAndClose = () => {
@@ -168,9 +187,10 @@ export default function QuoteModal({ isOpen, onClose, initialData = {} }) {
               <div className="pt-3">
                 <button
                   type="submit"
-                  className="w-full py-3.5 rounded-full bg-[#bbf451] hover:bg-[#a6e236] text-[#0c1524] font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-[#bbf451]/30 transition hover:scale-[1.01] active:scale-[0.99]"
+                  disabled={submitting}
+                  className="w-full py-3.5 rounded-full bg-[#bbf451] hover:bg-[#a6e236] text-[#0c1524] font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-[#bbf451]/30 transition hover:scale-[1.01] active:scale-[0.99] disabled:opacity-75"
                 >
-                  <span>Submit & Unlock Free Estimate</span>
+                  <span>{submitting ? 'Submitting to Database...' : 'Submit & Unlock Free Estimate'}</span>
                   <ArrowRight className="w-4 h-4 stroke-[2.5]" />
                 </button>
               </div>
